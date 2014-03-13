@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>jQuery/WebSocket demo</title>
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+		<link rel="icon" href="/img/favicon.ico" type="image/x-icon"/>
+		<link rel="shortcut icon" href="/img/favicon.ico"/>
+		<style type="text/css">
+			body {
+				margin: 5px;
+				padding: 0px;
+			}
+			canvas {
+				border: 1px solid #999999;
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+			}
+			#messages {
+				border: 1px solid black;
+			}
+		</style>
+		<script type="text/javascript" src="/js/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/jquery.json-2.4.min.js"></script>
+		<script type="text/javascript" src="/js/jquery.esEngine.js"></script>
+		<script type="text/javascript" src="/js/jquery.onload.js"></script>
+	</head>
+	<body>
+		<canvas id="canvas" width=800px height=400px></canvas><br>
+		<div id="messages" width=800px height=200px></div><br>
+		From<input type=text id="from"></input>&nbsp;&nbsp;
+		Message<input type=text id="message"></input>
+		<button onclick="es.send({eventName:'sendMessage', sendSelf: 1, message: $('#message').val(),from:$('#from').val()});$('#message').val('');">Send</button>
+		</td></tr></tbody></table>
+	</body>
+</html>

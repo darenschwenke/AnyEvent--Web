@@ -1,0 +1,73 @@
+<html>
+<head>
+<style>
+#remote {
+	display: inline-block;
+	overflow: scroll-x;
+	width: 100%;
+}
+.remote {
+	position: relative;
+	bottom: 0%;
+	width: 25%;
+}
+.focused {
+	position: relative;
+	bottom: 20px;
+	width: 50%;
+}
+#local {
+	position: fixed;
+	bottom: 10px;
+	right: 10px;
+	width: 25%;
+}
+</style>
+</head>
+<body>
+<div id="remote"></div>
+<video id="local" autoplay="autoplay"></video>
+<script src="js/jquery.min.js"></script>
+<script src="js/adapter.js"></script>
+<script src="js/webrtc.io.js"></script>
+<script>
+
+  // note: make sure hostname available to all connecting clients
+  // (ie. probably not `localhost`)
+  rtc.connect('ws://__WS_HOST__/webrtc' ,'boom');
+
+  rtc.createStream({"video": true, "audio":true}, function(stream){
+    // get local stream for manipulation
+    rtc.attachStream(stream, 'local');
+  });
+  var remote = $("#remote");
+  rtc.on('add remote stream', function(stream,id){
+    remote.append('<video class="remote" id="remote_' + id + '" autoplay="autoplay"></video>');
+    rtc.attachStream(stream, 'remote_' + id);
+    console.log(stream);
+    console.log(this);
+    $("#remote_" + id).on('click', function(e) {
+    	var bg_width = remote.width()/6;
+    	remote.children().each(function(e) {
+    		$(this).width(bg_width).removeClass("focused"); 
+    	});
+    	$(this).width(
+    			remote.width()/2 
+    	).addClass("focused");
+   	}).trigger('click');
+  });
+  rtc.on('disconnect stream', function(id){
+	var remove = $("#remote_" + id);
+   	var bg_width = remote.width()/6;
+    var focused =  remove.hasClass("focused");
+    if ( focused ) focused = remove.siblings('video').first();
+   	remote.children().each(function(e) {
+   		$(this).width(bg_width).removeClass("focused"); 
+   	});
+   	focused.width(remote.width()/2).addClass("focused");
+   	remove.remove();
+  });
+  // more rtc callbacks are available
+</script>
+</body>
+</html>
