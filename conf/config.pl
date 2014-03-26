@@ -16,8 +16,8 @@ $server = {
 };
 $fileserver = {
 	web_root 		=> "$FindBin::Bin/../webroot",
-	cache_enable 	=> 0,
-	cache_expire 	=> 300,
+	cache_enable 	=> 1,
+	cache_expire 	=> 30,
 };
 $websocket = {
 	#rbuf_max 	=> 16 * 1024, 	# max allowed size of read buffer in bytes
@@ -26,6 +26,14 @@ $websocket = {
 	no_delay 	=> 0, 			# if true, write data as you provide it
 	timeout 	=> 0, 			# idle connection timeout in seconds
 	redis => $cfg::redis
+};
+$jqws_json = {
+	%{$websocket},
+	encoding => 'json'
+};
+$jqws_msgpack = {
+	%{$websocket},
+	encoding => 'msgpack'
 };
 $wamp = {
 	%{$websocket},

@@ -3,13 +3,12 @@ package AnyEvent::Web::File;
 use Data::Dumper;
 use AnyEvent::IO;
 use AnyEvent::Web::Util qw(time2str);
-use Devel::Refcount qw(refcount);
-use AnyEvent::Debug;
-AnyEvent::Debug::wrap 2;
 use File::Basename;
 use File::MimeInfo;
 use File::MimeInfo::Magic qw(magic);
 use Scalar::Util qw(weaken isweak);
+use constant FILE_DEBUG => 1;
+use constant FILE_CACHE_DEBUG => 1;
 
 use URI::Escape qw( uri_unescape );
 
@@ -19,73 +18,85 @@ sub new {
 	my $self = { 
 		web_root => undef,
 		cache_enable => 0,
-		file_at_once_max => 8 * 1024,
 		cache_expire => 300,
+		file_at_once_max => 8 * 1024,
 		blocksize => 4096,
 		server_name => 'AnyEvent::Web',
 		now => time(),
 		now_http=> time2str(),
 		mime_map => { 
 			css 	=> 'text/css',
+			jpg		=> 'image/jpeg',
 			js 		=> 'text/javascript',
 			htm 	=> 'text/html ; charset=utf-8',
 			html	=> 'text/html ; charset=utf-8',
 			mp3		=> 'audio/mpeg'
 		},
 		%{$config},
-		_update_timer => AnyEvent->timer ( after => 1, interval => 1, cb => sub { 
-			$self->{now} = time();
-			$self->{now_http} = time2str($self->{now});
-			foreach my $key (keys %{$self->{_cache}} ) {
-				weaken($self->{_cache}->{$key}) if $self->{_cache}->{$key}->{expires} > $self->{now};
-				print "$key now has " . refcount($self->{_cache}->{$key}) . " references\n";
-			}
-		}),
 		_cache => {},
 	};
 	bless $self,$class;
+	print STDERR "$class starting with config: " . Dumper(\$config) if FILE_DEBUG;
 	#print STDERR "$class using IO module: $AnyEvent::IO::MODEL\n";
-	die('Web root directory "web_root" is not set.') if ( ! $self->{web_root} );
-	die('Web root directory "web_root" => "' . $self->{web_root} . '" does not exist.') if ( ! -d $self->{web_root} );
+	die($class . ': web_root is not set.') if ( ! $self->{web_root} );
+	die($class . ': web_root => "' . $self->{web_root} . '" does not exist.') if ( ! -d $self->{web_root} );
+	die($class . ': 404 error doc =>  "' . $self->{web_root} . '/404.html" is not readable.') if ( ! -r $self->{web_root} . '/404.html' );
+	$self->{_update_timer} = AnyEvent->timer ( after => 2, interval => 2, cb => sub { 
+		$self->{now} = time();
+		$self->{now_http} = time2str($self->{now});
+		foreach my $key (keys %{$self->{_cache}} ) {
+			if ($self->{_cache}->{$key}->{expires} < $self->{now} ) {
+				print STDERR "Expiring cache: $key\n" if FILE_CACHE_DEBUG;
+				delete($self->{_cache}->{$key}); 
+			}
+		}
+	});
 	return $self;
 }
 
 sub serve {
 	my ($self,$handle) = @_;
 	my $r = $handle->{request};
+	$r->{keep_alive} = 1 if $r->{HTTP_CONNECTION} =~ /keep-alive/io;
+	$r->{protocol} = $r->{SERVER_PROTOCOL};
 	$r->{filename} ||= $self->{web_root} . $r->{PATH};
-	$r->{cache_key} = $r->{filename} . $r->{keep_alive};
-	if ($self->{cache_enable} && $self->{_cache}->{$r->{cache_key}} ) {
-		my $cache = $self->{_cache}->{$r->{cache_key}};
+	my $key = 'PA:' . $r->{PATH} . '|' . 'KA:' . $r->{keep_alive};
+	if ($self->{cache_enable} && ( $cache = $self->{_cache}->{$key}) ) {
+		print STDERR "Serving $r->{PATH} from cache via rule $r->{ROUTE}\n" if FILE_DEBUG;
 		$r->{rewrite}->($cache) if $r->{rewrite};
-		$handle->push_write($self->get_header($cache) . $self->get_content($cache));
+		$handle->push_write($cache->{header_string} . 
+			'Content-Length: ' . $cache->{size} . "\n" . 
+			'Date: ' . $self->{now_http} . "\n\n" . $cache->{content_string});
 		$handle->on_drain( sub {
 			$cache->{on_done}->($handle) if $cache->{on_done};
 		});
+		return;
 	} else {
+		print STDERR "Serving $r->{PATH} from filesystem via rule $r->{ROUTE}\n" if FILE_DEBUG;
 	aio_open $r->{filename}, AnyEvent::IO::O_RDONLY, 0, sub {
 		my ($fh) = @_;
-		if ( ! $fh ) {
-			my $r = $self->get_inline(404,'NOT FOUND','text/plain','File not found: ' . $r->{PATH},$r);
-			$handle->push_write($self->get_header($r) . $self->get_content($r));
+		if ( ! $fh && ! $r->{redirect} ) {
+			$r->{code} = 404;
+			$r->{redirect} = 1;
+			$r->{message} = 'NOT FOUND';
+			$r->{filename} = $self->{web_root} . '/404.html';
+			return $self->serve($handle);
+		} elsif ( ! $fh ) {
+			$handle->push_write(
+		  		"HTTP/1.1 404 NOT FOUND\nDate: " . $self->{$now} . "\nServer: " . $self->{server_name} . "\nContent-Type: text/plain\n" . 
+		  		"Content-Length: 9\nLast-Modified: " . $self->{$now} . "\n\nNot Found"
+		  	);
 			$handle->on_drain( sub {
 				$r->{on_done}->(shift) if $r->{on_done};
 			});
 			return;
 		}
 		aio_stat $fh, sub {
-			my ($sh) = @_;
-			if ( ! $sh ) {
-				my $r = $self->get_inline(404,'NOT FOUND','text/plain','File not found: ' . $r->{PATH},$r);
-				$handle->push_write($self->get_header($r) . $self->get_content($r));
-				$handle->on_drain( sub {
-					$r->{on_done}->(shift) if $r->{on_done};
-				});
-				return;
-			}
+			@_ or return;
 			$r->{size} = (stat _)[7];
 			$r->{mtime} = (stat _)[9];
 			$r->{chunk} ||= ( (stat _)[11] || $self->{blocksize} );
+			$r->{expires} = $self->{now} + $self->{cache_expire};
 			my $header = $self->get_header($r);
 			if ( $r->{stream} ) {
 				aio_seek $fh, $r->{start_byte}, 0, sub {
@@ -121,9 +132,10 @@ sub serve {
 					$handle->on_drain(sub {
 						$r->{on_done}->(shift) if $r->{on_done};
 						$handle->on_drain( sub {} );
+						return;
 					});
 					if ( $self->{cache_enable} && ! $r->{cache_disable} ) {
-						$self->{_cache}->{$r->{cache_key}} = $r;
+						$self->{_cache}->{$key} = $r;
 					} 
 				};
 			}
@@ -162,24 +174,25 @@ sub get_header {
 	my ($self,$r) = @_;
 	my $partial = '';
 	if ( ! $r->{header_string} ) {
-		$r->{code} = 200;
-		$r->{keep-alive} = 1;
-		$r->{message} = 'OK';
-		$r->{start_byte} = 0;
-		$r->{end_byte} = $r->{size};
 		if ( $r->{size} > $self->{file_at_once_max} ) {
 			$r->{stream} = 1;
-			$r->{cache_disabled} = 1;
+			$r->{cache_disable} = 1;
 		}
 		$r->{mtime} ||= $self->{now};
 		if ( $r->{HTTP_RANGE} && $r->{HTTP_RANGE} =~ /bytes=(\d*)-(.*)$/io ) {
-			$r->{code} = 206;
+			$r->{code} ||= 206;
 			$r->{message} = 'PARTIAL CONTENT';
 			$r->{start_byte} = $1;
 			$r->{end_byte} = $2 || $r->{size};
 			$r->{stream} = 1;
 			$r->{cache_disable} = 1;
 			$partial = 'Content-Range: bytes ' . $r->{start_byte} . '-' . $r->{end_byte} . '/' . $r->{size} . "\n";
+		} else {
+			$r->{code} ||= 200;
+			$r->{keep-alive} = 1;
+			$r->{message} ||= 'OK';
+			$r->{start_byte} = 0;
+			$r->{end_byte} = $r->{size};
 		}
 		if ( ! $r->{mime_type} ) {
 			($r->{fileext}, $r->{filepart},undef ) = reverse(split /\./, $r->{PATH});

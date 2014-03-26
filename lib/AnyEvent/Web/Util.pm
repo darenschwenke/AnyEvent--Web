@@ -2,10 +2,11 @@ package AnyEvent::Web::Util;
 
 BEGIN { AnyEvent::common_sense }
 
+use Encode;
 use base 'Exporter';
 
 our @EXPORT = qw(
-  	time2str log_add log_last log_prune
+  	time2str print_unicode 
   	load_config get_config clear_config 
 );
 our $VERSION = '0.0.2';
@@ -50,18 +51,7 @@ sub clear_config {
 	$cfg::{$namespace} = undef;
 }
 
-#our @log;
-#sub log_add {
-#	my ($input)  = @_;
-#	push(@log,strftime("%Y-%m-%d %H:%M:%S : ", localtime()). $input);
-#}
-#sub log_last {
-#	my ( $lines ) = shift || 20;
-#	return ($lines >= @log) ? @log : @log[-$lines..-1];
-#}
-#sub log_prune {
-#	my ( $lines ) = shift || 20;
-#	return @log = log_last($lines);
-#}
-
+sub print_unicode {
+    sprintf "%04x", ord Encode::decode("UTF-8", shift);
+}
 1;

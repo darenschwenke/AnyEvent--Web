@@ -3,6 +3,8 @@ package AnyEvent::Web::Socket::jQApp;
 use parent qw( AnyEvent::Web::Socket );
 use AnyEvent::Redis::RipeRedis;
 
+use constant JQ_DEBUG => 1;
+
 use Data::Dumper;
 
 sub new {
@@ -16,10 +18,11 @@ sub on_message {
 	my $self = shift;
 	my $input = shift;
 	$input->{eventName} ||= '';
-	if ( $input->{eventName} && $self->can('on_' . $input->{eventName}) ) {
-		$self->can('on_' . $input->{eventName})->($self,$input);
-	} else {
-		$self->can('on_unimplemented')->($self,$input) if $self->can('on_unimplemented');
+	if ( $input->{eventName} && ( my $method = $self->can('on_' . $input->{eventName}) ) ) {
+		print STDERR 'WebSocket on_' . $input->{eventName} . ' triggered with:' . Dumper($input) if JQ_DEBUG;
+		$method->($self,$input);
+	} elsif ( my $method = $self->can('on_unimplemented') ) {
+		$method->($self,$input);
 	}
 }
 sub on_open {
@@ -36,17 +39,12 @@ sub on_open {
 		{ 
 			on_message => sub {
 				my ($channel,$message) = @_;
-				$self->send($message);
+				print STDERR 'redis on_message channel => ' . $channel . ', message => ' . $message . "\n" if JQ_DEBUG;
+				$self->send_raw($message);
 			}
 		}
 	);
-};
-
-sub on_login {
-	my $self  = shift;
-	my $input = shift;
-	$self->is_authenticated(1);
-	$self->send({eventName=>"login",data => {t=>'#messages',a=>'append',c=>'<div><b>Connection</b>&nbsp;&nbsp;Connected to WebSocket.</div>' }});
+	$self->send({eventName=>"login",data => {t=>'#messages',a=>'append',c=>'<li><b>Connection</b>Connected to WebSocket.</li>' }});
 	$self->{redis}->{eventRecv}->psubscribe(
 		'ui:*',
 		{ 
@@ -55,16 +53,48 @@ sub on_login {
 			on_message => sub {
 				my ($channel,$message,$pattern) = @_;
 				return if $channel eq 'ui:' . $self->connId;
-				$self->send($message);
+				$self->send_raw($message);
 			}
 		}
 	);
+	$self->{redis}->{eventSend}->publish(
+		'ui:all',
+		$self->encode({
+			data=>[
+				{t=>'#messages', a=>'append', c=>'<li><b>System</b>User ' . $self->connId . ' joined the room.</li>' } ,  
+			]
+		 }
+		),
+		{
+		  on_done  => sub {},
+		  on_error => sub {}
+		}
+	);
+};
+
+sub on_close {
+	my $self  = shift;
+	my $input = shift;
+	$self->{redis}->{eventSend}->publish(
+		'ui:all',
+		$self->encode({
+			data=>[
+				{t=>'#messages', a=>'append', c=>'<li><b>System</b>User ' . $self->connId . ' left the room.</li>' } ,  
+			]
+		 }
+		),
+		{
+		  on_done  => sub {},
+		  on_error => sub {}
+		}
+	);
+	$self->SUPER::on_close();
 }
 
 sub on_drawLine {
 	my $self  = shift;
 	my $input = shift;
-	my @data;
+	print STDERR 'on_drawLine got :' . Dumper($input) if JQ_DEBUG;
 	$self->{redis}->{eventSend}->publish(
 		'ui:' . $self->connId,
 		$self->encode({data=>{e=>'drawLine(' . $self->encode($input->{coordinates}) . ')'}}),
@@ -80,12 +110,11 @@ sub on_sendMessage {
 	my $input = shift;
 	my $id = $self->connId;
 	$id = 'all' if $input->{sendSelf};
-	my @data;
 	$self->{redis}->{eventSend}->publish(
 		'ui:' . $id,
 		$self->encode({
 			data=>[
-				{t=>'#messages', a=>'append', c=>'<div><b>' . $input->{from} . '</b>&nbsp;&nbsp;' . $input->{message} . '</div>' } ,  
+				{t=>'#messages', a=>'append', c=>'<li><b>' . $input->{from} . '</b>' . $input->{message} . '</li>' } ,  
 				# maps to $('#messages').append('<b...');
 				# {a=>'append',c=>'Something else!<br />' } 
 				# No t variable (target) maps to chaining from previous.

@@ -18,18 +18,24 @@
 			#messages {
 				border: 1px solid black;
 			}
+			#messages > li > b {
+				width: 20em;
+				text-align: right;
+				padding-right: 1em;
+			}
 		</style>
 		<script type="text/javascript" src="/js/jquery.min.js"></script>
 		<script type="text/javascript" src="/js/jquery.json-2.4.min.js"></script>
-		<script type="text/javascript" src="/js/jquery.esEngine.js"></script>
+		<script type="text/javascript" src="/js/msgpack.codec.js"></script>
+		<script type="text/javascript" src="/js/jquery.wse.js"></script>
 		<script type="text/javascript" src="/js/jquery.onload.js"></script>
 	</head>
 	<body>
 		<canvas id="canvas" width=800px height=400px></canvas><br>
-		<div id="messages" width=800px height=200px></div><br>
+		<ul id="messages" width=800px height=200px></ul><br>
 		From<input type=text id="from"></input>&nbsp;&nbsp;
 		Message<input type=text id="message"></input>
-		<button onclick="es.send({eventName:'sendMessage', sendSelf: 1, message: $('#message').val(),from:$('#from').val()});$('#message').val('');">Send</button>
+		<button onclick="ws.send({eventName:'sendMessage', sendSelf: 1, message: $('#message').val(),from:$('#from').val()});$('#message').val('');">Send</button>
 		</td></tr></tbody></table>
 	</body>
 </html>

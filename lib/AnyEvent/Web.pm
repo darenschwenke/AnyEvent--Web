@@ -7,27 +7,26 @@ use Data::Dumper;
 use FindBin;
 use lib "$FindBin::Bin/../";
 use HTTP::Parser::XS qw(parse_http_request);
-use URI::Escape qw( uri_unescape );
-
+#use URI::Escape qw( uri_unescape );
 
 use AnyEvent::Handle;
 use AnyEvent::Socket qw( tcp_server );
-use Socket qw( SOL_SOCKET SO_REUSEPORT ); 
 use AnyEvent::Web::Util qw( time2str );
-
+use constant ROUTE_DEBUG => 0;
 
 use base 'Exporter';
 
 our @EXPORT = qw(
-  	web_router 
 );
 our $VERSION = '0.0.3';
+our $PATH_CLEAN_REGEX = qr{\.\.\/}s;
+our $PATH_UNESCAPE_REGEX = qr{%([0-9A-Fa-f]{2})};
 
 sub new {
 	my ($caller,$config,$routes) = @_;
 	my $class = ref($caller) || $caller;
 	my $self = bless {
-		config => $config || {},
+		config => $config || { server_id => 0 },
 		routes => $routes || [],
 		_connections => {},
 		_tcp_server => undef,
@@ -43,32 +42,35 @@ sub serve {
 		$self->{config}->{bind_ip}, 
 		$self->{config}->{bind_port}, 
 		sub {
-			my ($sock, $host, $port) = @_;
-			setsockopt($sock, SOL_SOCKET, SO_REUSEPORT, 1) or die ("Failed to set socket options: $!");
-			my $id =  (10000000 * $self->{server_id}) + fileno($sock);
+			my ($sock) = shift;
+			#my ($sock, $host, $port) = @_;
+			my $id =  (10000000 * $self->{config}->{server_id}) + fileno($sock);
 			$self->{_connections}->{$id} = AnyEvent::Handle->new(
 				fh => $sock, 
 				id => $id,
-				path_regex => qr{\.\.\/}s,
     			server_name => 'AnyEvent::Web',
     			request => {},
 				on_error => sub {
 					my ($handle,$fatal,$error) = @_;
+					print STDERR "$id got error $error\n" if ROUTE_DEBUG;
 					$handle->destroy() if $fatal;
 				},
 				on_eof => sub {
 					my ($handle) = shift;
+					print STDERR "$id got eof\n" if ROUTE_DEBUG;
 					$handle->destroy();
 				},	
 				on_timeout => sub {
 					my ($handle) = shift;
+					print STDERR "$id got timeout\n" if ROUTE_DEBUG;
 					$handle->destroy();
 				},
 				on_read => sub {
 					my ($handle) = shift;
-					$handle->{request} = {}; # if ! $handle->{request};
-					my $ret = parse_http_request($handle->{rbuf},$handle->{request});
+					my $r = {}; # if ! $handle->{request};
+					my $ret = parse_http_request($handle->{rbuf},$r);
 					if ($ret == -1) {
+						print STDERR "$id bad request\n" if ROUTE_DEBUG;
 						my $now = time2str();
 		  				$handle->push_write(
 		  					"HTTP/1.1 400 BAD REQUEST\nDate: $now\nServer: $self->{server_name}\nContent-Type: text/plain\n" . 
@@ -76,53 +78,61 @@ sub serve {
 		  				);
 						$handle->push_shutdown();
 					} elsif ($ret == -2) {
+						print STDERR "$id incomplete request\n" if ROUTE_DEBUG;
 		  			} else {
-		  				my $r = $handle->{request};
-  						if ( $r->{REQUEST_METHOD} eq 'GET' && $r->{QUERY_STRING} ) {
-  							foreach my $var (split(/&/, $r->{QUERY_STRING})) {
-  								my ( $name, $value ) = split(/=/,$var);
-  								$r->{GET}->{$name} = uri_unescape($value);
-  							}
-  						}
-						$r->{PATH} = uri_unescape($r->{PATH_INFO}) || '/';
+		  				$handle->{request} = $r;
+						$r->{PATH} = $r->{PATH_INFO};
 						$r->{PATH} = '/index.html' if $r->{PATH} eq '/';
-						$r->{keep_alive} = 1 if $r->{HTTP_CONNECTION} =~ /keep-alive/io;
-						$r->{protocol} = $r->{SERVER_PROTOCOL};
-						$r->{PATH} =~ s/$self->{path_regex}//g;
+						$r->{PATH} =~ s/$PATH_UNESCAPE_REGEX/chr(hex($1))/eg;
+						$r->{PATH} =~ s/$PATH_CLEAN_REGEX//g;
 						ROUTE:
-						for my $route ( @{ $handle->{routes} } ) {
+						foreach my $route ( @{ $self->{routes} } ) {
+							$r->{ROUTE} = $route->{name};
 							$r->{CONTINUE} = 0;
-							if ( defined( $route->{match} ) ) {
-								while ( my ( $var, $value ) = each %{$route->{match}} ) {
-									if ( defined($handle->{request}->{$var}) && $handle->{request}->{$var} ~~ $value ) {
-					 					$r->{PATH_VARS} = %+ if %+;
-										if ( $route->{handler} ) {
-											$route->{handler}->($handle);
-											last ROUTE if ! $handle->{request}->{CONTINUE};
-										}
+							print STDERR "$id $r->{PATH} checking route $route_num -> $route->{name}\n" if ROUTE_DEBUG;
+							if ( defined ( $route->{match_path} ) && $r->{PATH} eq $route->{match_path} ) {
+								$route->{handler}->($handle) if $route->{handler};
+								last ROUTE if ! $r->{CONTINUE};
+							}
+							if ( defined ( $route->{match_any} ) ) {
+								foreach my $key ( keys %{$route->{match_any}} ) {
+									if ( defined($r->{$key}) && $r->{$key} ~~ $route->{match_any}->{$key}) {
+					 					$r->{VARS}->{$key} = %+ if %+;
+										$route->{handler}->($handle) if $route->{handler};
+										last ROUTE if ! $r->{CONTINUE};
 									}
 								}
-							} elsif ( defined( $route->{match_all} ) ) {
-								my $matched = 0;
+							} elsif ( defined ( $route->{match_all} ) ) {
 								MATCH_ALL: {
-									while ( my ( $var, $value ) = each %{$route->{match_all}} ) {
-										if ( defined($handle->{request}->{$var}) ) {
-											if ( $handle->{request}->{$var} ~~ $value ) {
-					 							$handle->{request}->{PATH_VARS} = %+ if %+;
-												$matched = 1;
+									foreach my $key ( keys %{$route->{match_all}} ) {
+										if ( defined($r->{$key}) ) {
+											if ( $r->{$key} ~~ $route->{match_all}->{$key} ) {
+					 							$r->{VARS}->{$key} = %+ if %+;
 											} else {
 												last MATCH_ALL;
 											} 
+										} else {
+											last MATCH_ALL;
 										}
 									}
-									if ( $matched && $route->{handler} ) {
-										$route->{handler}->($handle);
-										last ROUTE if ! $handle->{request}->{CONTINUE};
+									$route->{handler}->($handle) if $route->{handler};
+									last ROUTE if ! $r->{CONTINUE};
+								}
+							} elsif ( defined ( $route->{match_none} ) ) {
+								MATCH_NONE: {
+									foreach my $key ( keys %{$route->{match_none}} ) {
+										if ( defined($r->{$key}) ) {
+											if ( $r->{$key} ~~ $route->{match_none}->{$key} ) {
+												last MATCH_NONE;
+											}
+										}
 									}
+									$route->{handler}->($handle) if $route->{handler};
+									last ROUTE if ! $r->{CONTINUE};
 								}
 							} elsif ( defined ( $route->{handler} ) ) {
 								$route->{handler}->($handle);
-								last ROUTE if ! $handle->{request}->{CONTINUE};
+								last ROUTE if ! $r->{CONTINUE};
 							}
 						}
 						$handle->{rbuf} = undef;
@@ -133,6 +143,21 @@ sub serve {
 			);
 		}
 	);
+}
+
+sub parse_form {
+	my $self = shift;
+	my $r = shift;
+	if ( $r->{REQUEST_METHOD} eq 'GET' && $r->{QUERY_STRING} ) {
+  		foreach my $var (split(/&/, $r->{QUERY_STRING})) {
+  			my ( $name, $value ) = split(/=/,$var);
+  			if ( ! defined ($r->{FORM}->{$name} ) ) {
+  				$r->{FORM}->{$name} = [];
+  			}
+  			push(@{$r->{FORM}->{$name}},uri_unescape($value));
+  		}
+  	}
+  	return $r->{FORM};
 }
 
 1;

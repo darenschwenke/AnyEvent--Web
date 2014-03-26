@@ -13,14 +13,17 @@ use Data::Dumper;
 $Data::Dumper::Terse = 1;
 $Data::Dumper::Indent = 2;
 $Data::Dumper::Sortkeys = 1;
-use AnyEvent::Debug;
-AnyEvent::Debug::wrap 2;
-
+#use AnyEvent::Debug;
+#AnyEvent::Debug::wrap 2;
 
 my $conf_dir = "$FindBin::Bin/../conf";
 load_config("$conf_dir/redis.pl");
 load_config("$conf_dir/config.pl");
 load_config("$conf_dir/routes.pl");
+my $redis = AnyEvent::Redis::RipeRedis->new( %{ $cfg::redis->{events} } );
+$redis->flushall({
+	on_done => sub {print STDERR "Cleared Redis DB\n";}
+});
 
 my $server;
 my $cv = AnyEvent->condvar;

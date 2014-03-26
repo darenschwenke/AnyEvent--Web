@@ -1,8 +1,8 @@
-package AnyEvent::Web::Socket::WebRTC;
+package AnyEvent::Web::Socket::SimpleWebRTC;
 
 use parent qw( AnyEvent::Web::Socket );
 use AnyEvent::Redis::RipeRedis;
-use constant WEBRTC_DEBUG => 1;
+use constant SIMPLEWEBRTC_DEBUG => 1;
 use Data::Dumper;
 
 sub new {
@@ -26,7 +26,7 @@ sub on_open {
 		{ 
 			on_message => sub {
 				my ($channel,$message) = @_;
-				print STDERR $self->{_handle}->{id} . ' ' . $self->{_class} . ' Redis on_message channel => ' . $channel . ', message => ' . $message . "\n" if WEBRTC_DEBUG;
+				print STDERR 'redis on_message channel => ' . $channel . ', message => ' . $message . "\n" if SIMPLEWEBRTC_DEBUG;
 				$self->send_raw($message);
 			}
 		}
@@ -38,7 +38,7 @@ sub on_message {
 	my $input = shift;
 	$input->{eventName} ||= '';
 	if ( $input->{eventName} && ( my $method = $self->can('on_' . $input->{eventName}) ) ) {
-		print STDERR $self->{_handle}->{id} . ' ' . $self->{_class} . ' on_' . $input->{eventName} . ' triggered with:' . Dumper($input) if WEBRTC_DEBUG;
+		print STDERR 'WebSocket on_' . $input->{eventName} . ' triggered with:' . Dumper($input) if SIMPLEWEBRTC_DEBUG;
 		$method->($self,$input);
 	} else {
 		$self->can('on_unimplemented')->($self,$input) if $self->can('on_unimplemented');

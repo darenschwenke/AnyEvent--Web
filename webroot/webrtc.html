@@ -2,25 +2,18 @@
 <head>
 <style>
 #remote {
-	display: inline-block;
-	overflow: scroll-x;
 	width: 100%;
 }
 .remote {
-	position: relative;
-	bottom: 0%;
 	width: 25%;
-}
-.focused {
-	position: relative;
-	bottom: 20px;
-	width: 50%;
+	border: 1px solid black;
 }
 #local {
 	position: fixed;
 	bottom: 10px;
 	right: 10px;
 	width: 25%;
+	border: 1px solid black;
 }
 </style>
 </head>
@@ -42,29 +35,13 @@
   });
   var remote = $("#remote");
   rtc.on('add remote stream', function(stream,id){
-    remote.append('<video class="remote" id="remote_' + id + '" autoplay="autoplay"></video>');
+    remote.append('<video class="remote" id="remote_' + id + '" autoplay="autoplay" title="User: ' + id + '"></video>');
     rtc.attachStream(stream, 'remote_' + id);
-    console.log(stream);
-    console.log(this);
-    $("#remote_" + id).on('click', function(e) {
-    	var bg_width = remote.width()/6;
-    	remote.children().each(function(e) {
-    		$(this).width(bg_width).removeClass("focused"); 
-    	});
-    	$(this).width(
-    			remote.width()/2 
-    	).addClass("focused");
-   	}).trigger('click');
+    console.log("Connect:" + id);
   });
   rtc.on('disconnect stream', function(id){
+    console.log("Disconnect:" + id);
 	var remove = $("#remote_" + id);
-   	var bg_width = remote.width()/6;
-    var focused =  remove.hasClass("focused");
-    if ( focused ) focused = remove.siblings('video').first();
-   	remote.children().each(function(e) {
-   		$(this).width(bg_width).removeClass("focused"); 
-   	});
-   	focused.width(remote.width()/2).addClass("focused");
    	remove.remove();
   });
   // more rtc callbacks are available

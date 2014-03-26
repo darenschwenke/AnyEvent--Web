@@ -1,54 +1,24 @@
+/*
+    This program is free for non commercial use under the GPL license.
+    All code contained within is copyright daren.schwenke@gmail.com.
+    Alternate licensing options are available.  For more information on
+    obtaining a license, please contact daren.schwenke@gmail.com.
+ 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-var canvas;
-var pen;
-var moving = false;
-drawLine = function(coordinates) {
-	var start = coordinates.pop;
-	var	pen = canvas[0].getContext( "2d" );
-	pen.beginPath();
-	pen.moveTo(start.x,start.y);
-	for (var i = 0; i < coordinates.length; i++) {
-		var pos = coordinates[i];
-		pen.lineTo(pos.x,pos.y);
-		pen.stroke();
-	}
-}
-//(function($){
-//})(jQuery);
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+*/
+
+var wse;
 $(document).ready(function() {
-	canvas = $( "canvas" );
-	var getPos = function(event){
-		console.log(event);
-		//if ( window.event.targetTouches && window.event.targetTouches.length ) event = window.event.targetTouches[0];
-		var position = canvas.offset();
-		return({x:parseInt(event.pageX - position.left),y:parseInt(event.pageY - position.top)});
-	};
-	var coordinates = new Array();
-	canvas.on("touchstart mousedown", function(event){
-		var pos = getPos(event);
-		pen = canvas[0].getContext( "2d" );
-		pen.beginPath();
-		pen.moveTo(pos.x,pos.y);
-		coordinates.push(pos);
-		moving = true;
-		return false;
-	}).on("touchmove mousemove", function(event){
-		if ( ! moving ) return false;
-		var pos = getPos(event);
-		pen.lineTo(pos.x,pos.y);
-		coordinates.push(pos);
-		pen.stroke();
-		return false;
-	}).on("touchend mouseup", function(event){
-		var pos = getPos(event);
-		pen.lineTo(pos.x,pos.y);
-		coordinates.push(pos);
-		pen.stroke();
-		es.send({eventName:'drawLine',coordinates:coordinates});
-		coordinates = new Array();
-		moving = false;
-		return false;
-	});
-	es = $.esEngine({url:'ws://__WS_HOST__/jqws'});
+	wse = $.wse({url:'ws://__WS_HOST__/jqws_json',encoding:'json'});
 });
