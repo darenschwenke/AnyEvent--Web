@@ -4,6 +4,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib/";
 use AnyEvent::Web::File;
 use AnyEvent::Web::Socket::WAMP; 
+use AnyEvent::Web::Socket::WebGL; 
 use AnyEvent::Web::Socket::WebRTC; 
 use AnyEvent::Web::Socket::jQApp; 
 
@@ -22,20 +23,9 @@ $routes = [
 	#	}
 	#},
 	{
-		name => 'serve files',
-		match_none => {
-			HTTP_UPGRADE => qr/websocket/i,
-			HTTP_CONNECTION => qr/Upgrade/i,
-			PATH => ['/js/jquery.onload.js','/webrtc.html']
-		},	
-		handler => sub {
-			$fileserver->serve(@_);
-		}
-	},
-	{
 		name => 'rewrite ws_host',
 		match_any => { 
-			PATH => ['/js/jquery.onload.js','/webrtc.html']
+			PATH => ['/js/jquery.onload.js','/webrtc.html','/webgl.html']
 		},
 		handler => sub {
 			my ($handle) = shift;
@@ -44,6 +34,28 @@ $routes = [
 				$r->{content_string} =~ s/__WS_HOST__/$r->{HTTP_HOST}/g;
 			};
 			$fileserver->serve($handle);
+		}
+	},
+	{
+		name => 'serve files',
+		match_none => {
+			HTTP_UPGRADE => qr/websocket/i,
+			HTTP_CONNECTION => qr/Upgrade/i,
+			PATH => ['/js/jquery.onload.js','/webrtc.html','/webgl.html']
+		},	
+		handler => sub {
+			$fileserver->serve(@_);
+		}
+	},
+	{
+		name => 'serve /webgl websocket',
+		match_all => {
+			PATH => '/webgl',
+			HTTP_UPGRADE => qr/websocket/i,
+			HTTP_CONNECTION => qr/Upgrade/i,
+		},
+		handler => sub {
+			AnyEvent::Web::Socket::WebGL->new(shift,$cfg::jqws_json);
 		}
 	},
 	{

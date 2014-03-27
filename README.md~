@@ -6,7 +6,7 @@ This was simply supposed to showcase the way I've implemented server side jQuery
 
 Good things:
 
-It's fast.  In HTTP mode, it can serve 28k requests/sec with full headers on a single thread.  If that scales, it could be the fastest Perl based webserver.
+It's fast.  In HTTP mode, it can serve 20k requests/sec with full headers on a single thread.  If that scales, it could be the fastest Perl based webserver.
 
 Low memory footprint.  
 

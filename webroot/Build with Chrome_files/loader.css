@@ -1,0 +1,283 @@
+/*loader*/
+.loader-coverall {
+    position: fixed;
+    background: #d0d9de url(../img/startscreen/bg-loader.jpg) no-repeat center center;
+    background-size: cover;
+    z-index: 2000;
+    left: 0;
+    right: 0;
+    top:0;
+    bottom:0;
+    text-align: center;
+}
+
+.loader-center {
+    width: 90%;
+    max-width: 476px;
+    position: relative;
+}
+
+.loader-bg {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.loader-anim-global {
+    width: 60px;
+    height: 220px; 
+}
+
+.loader-anim {
+    position: relative;
+    display: inline-block;
+
+    width: 60px !important;
+    height: 90px;
+}
+
+.loader-logo {
+    background: transparent url(../img/v2/loader-google.png) no-repeat center center;
+    background-size: contain;
+
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    width: 100%;
+    height: 0;
+    padding-bottom: 13.6554622%;
+
+    margin-top: -50px;
+    opacity: 0;
+    transition: opacity .5s ease-out;
+    -webkit-transition: opacity .5s ease-out;
+
+    margin-bottom: 6rem;
+}
+
+.loader-maps-shadow {
+    background: transparent url(../img/v2/loader-maps-shadow.png) 0 0;
+    width: 60px;
+    height: 25px;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    margin-left: -30px;
+    opacity: 0;
+
+    -webkit-transform: translate3d(0,-10px,0);
+    transform: translate3d(0,-10px,0);
+}
+
+.loader-maps-shadow-show {
+    -webkit-transition: -webkit-transform .5s .3s ease-out, opacity .5s .3s ease-out;
+    transition: transform .5s .3s ease-out, opacity .5s .3s ease-out;
+
+    opacity: 0.2;
+
+    -webkit-transform: translate3d(0,0,0) !important;
+    transform: translate3d(0,0,0) !important;
+}
+
+.loader-maps-marker {
+    background: transparent url(../img/v2/loader-maps-marker.png) 0 0;
+    width: 27px;
+    height: 50px;
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    margin-left: -13.5px;
+    opacity: 0;
+
+    -webkit-transform: translate3d(0,-18px,0);
+    transform: translate3d(0,-18px,0);
+}
+
+.loader-maps-marker-show {
+    -webkit-transition: -webkit-transform .5s .6s ease-out, opacity .5s .6s ease-out;
+    transition: transform .5s .6s ease-out, opacity .5s .6s ease-out;
+
+    opacity: 1;
+    -webkit-transform: translate3d(0,0,0) !important;
+    transform: translate3d(0,0,0) !important;
+}
+
+.loader-brick {
+    -moz-box-sizing: content-box;
+    box-sizing: content-box;
+    width: 100%;
+    height: 0;
+    padding-bottom: 78.3333333%;
+
+    opacity: 0;
+
+    position: absolute;
+    background: transparent url(../img/v2/loader-brick-sprite.png) no-repeat;
+}
+
+.loader-brick-blue {
+    bottom: 75%;
+}
+
+.loader-brick-green {
+    bottom: 50%;
+    background-position: 0px -47px;
+}
+
+.loader-brick-red {
+    bottom: 25%;
+    background-position: 0px -94px;
+}
+
+.loader-brick-yellow {
+    bottom: 0;
+    background-position: 0px -141px;
+}
+
+.loader-anim.animate .loader-brick {
+    opacity: 1;
+    -webkit-transform: translateY(-30px);
+    transform: translateY(-30px);
+}
+
+.loader-anim.animate .loader-brick-yellow {
+    -webkit-animation: loader-brick-animation1 1.5s linear infinite;
+    animation: loader-brick-animation1 1.5s linear infinite;
+}
+
+.loader-anim.animate .loader-brick-red {
+    -webkit-animation: loader-brick-animation2 1.5s linear infinite;
+    animation: loader-brick-animation2 1.5s linear infinite;
+}
+
+.loader-anim.animate .loader-brick-green {
+    -webkit-animation: loader-brick-animation3 1.5s linear infinite;
+    animation: loader-brick-animation3 1.5s linear infinite;
+}
+
+.loader-anim.animate .loader-brick-blue {
+    -webkit-animation: loader-brick-animation4 1.5s linear infinite;
+    animation: loader-brick-animation4 1.5s linear infinite;
+}
+
+@-webkit-keyframes loader-brick-animation1 {
+    0% { opacity: 0; -webkit-animation-timing-function: ease-out; -webkit-transform: translateY(-33.333%); }
+    19.9333% { opacity: 1; -webkit-animation-timing-function: linear; -webkit-transform: translateY(0); }
+    40% { opacity: 1; -webkit-animation-timing-function: ease-in; -webkit-transform: translateY(0); }
+    60% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+    100% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+}
+
+@-webkit-keyframes loader-brick-animation2 {
+    0% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(-33.333%); }
+    6.66667% { opacity: 0; -webkit-animation-timing-function: ease-out; -webkit-transform: translateY(-33.333%); }
+    26.6667% { opacity: 1; -webkit-animation-timing-function: linear; -webkit-transform: translateY(0); }
+    46.6667% { opacity: 1; -webkit-animation-timing-function: ease-in; -webkit-transform: translateY(0); }
+    66.6667% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+    100% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+}
+
+@-webkit-keyframes loader-brick-animation3 {
+    0% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(-33.333%); }
+    13.3333% { opacity: 0; -webkit-animation-timing-function: ease-out; -webkit-transform: translateY(-33.333%); }
+    33.2667% { opacity: 1; -webkit-animation-timing-function: linear; -webkit-transform: translateY(0); }
+    53.3333% { opacity: 1; -webkit-animation-timing-function: ease-in; -webkit-transform: translateY(0); }
+    73.3333% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+    100% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+}
+
+@-webkit-keyframes loader-brick-animation4 {
+    0% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(-33.333%); }
+    20% { opacity: 0; -webkit-animation-timing-function: ease-out; -webkit-transform: translateY(-33.333%); }
+    40% { opacity: 1; -webkit-animation-timing-function: linear; -webkit-transform: translateY(0); }
+    60% { opacity: 1; -webkit-animation-timing-function: ease-in; -webkit-transform: translateY(0); }
+    80% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+    100% { opacity: 0; -webkit-animation-timing-function: linear; -webkit-transform: translateY(62.5%); }
+}
+
+@keyframes loader-brick-animation1 {
+    0% { opacity: 0; animation-timing-function: ease-out; transform: translateY(-33.333%); }
+    19.9333% { opacity: 1; animation-timing-function: linear; transform: translateY(0); }
+    40% { opacity: 1; animation-timing-function: ease-in; transform: translateY(0); }
+    60% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+    100% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+}
+
+@keyframes loader-brick-animation2 {
+    0% { opacity: 0; animation-timing-function: linear; transform: translateY(-33.333%); }
+    6.66667% { opacity: 0; animation-timing-function: ease-out; transform: translateY(-33.333%); }
+    26.6667% { opacity: 1; animation-timing-function: linear; transform: translateY(0); }
+    46.6667% { opacity: 1; animation-timing-function: ease-in; transform: translateY(0); }
+    66.6667% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+    100% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+}
+
+@keyframes loader-brick-animation3 {
+    0% { opacity: 0; animation-timing-function: linear; transform: translateY(-33.333%); }
+    13.3333% { opacity: 0; animation-timing-function: ease-out; transform: translateY(-33.333%); }
+    33.2667% { opacity: 1; animation-timing-function: linear; transform: translateY(0); }
+    53.3333% { opacity: 1; animation-timing-function: ease-in; transform: translateY(0); }
+    73.3333% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+    100% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+}
+
+@keyframes loader-brick-animation4 {
+    0% { opacity: 0; animation-timing-function: linear; transform: translateY(-33.333%); }
+    20% { opacity: 0; animation-timing-function: ease-out; transform: translateY(-33.333%); }
+    40% { opacity: 1; animation-timing-function: linear; transform: translateY(0); }
+    60% { opacity: 1; animation-timing-function: ease-in; transform: translateY(0); }
+    80% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+    100% { opacity: 0; animation-timing-function: linear; transform: translateY(62.5%); }
+}
+
+@media screen and (max-width: 380px) {
+    .loader-logo {
+        margin-bottom: 0;
+        display: inline-block;
+        width: 60%;
+        margin-right: 5%;
+    }
+
+    .loader-maps-shadow {
+        background-size: 30px 12.5px;
+        width: 30px;
+        height: 12.5px;
+        margin-left: -15px;
+
+        -webkit-transform: translate3d(0,-5px,0);
+        transform: translate3d(0,-5px,0);
+    }
+
+    .loader-maps-marker {
+        background-size: 13.5px 24px;
+        width: 13.5px;
+        height: 24px;
+        margin-left: -6.75px;
+        bottom: 5px;
+
+        -webkit-transform: translate3d(0,-10px,0);
+        transform: translate3d(0,-10px,0);
+    }
+
+    .loader-anim {
+        width: 30px !important;
+        height: 45px;
+
+        vertical-align: -5px;
+    }
+
+    .loader-brick {
+        background-size: 30px 94px;
+    }
+
+    .loader-brick-green {
+        background-position: 0px -23.5px;
+    }
+
+    .loader-brick-red {
+        background-position: 0px -47px;
+    }
+
+    .loader-brick-yellow {
+        background-position: 0px -70.5px;
+    }
+}

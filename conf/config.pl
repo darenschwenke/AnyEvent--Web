@@ -16,7 +16,7 @@ $server = {
 };
 $fileserver = {
 	web_root 		=> "$FindBin::Bin/../webroot",
-	cache_enable 	=> 1,
+	cache_enable 	=> 0,
 	cache_expire 	=> 30,
 };
 $websocket = {

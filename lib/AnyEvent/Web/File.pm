@@ -19,7 +19,7 @@ sub new {
 		web_root => undef,
 		cache_enable => 0,
 		cache_expire => 300,
-		file_at_once_max => 8 * 1024,
+		file_at_once_max => 32 * 1024,
 		blocksize => 4096,
 		server_name => 'AnyEvent::Web',
 		now => time(),
@@ -27,6 +27,7 @@ sub new {
 		mime_map => { 
 			css 	=> 'text/css',
 			jpg		=> 'image/jpeg',
+			png		=> 'image/png',
 			js 		=> 'text/javascript',
 			htm 	=> 'text/html ; charset=utf-8',
 			html	=> 'text/html ; charset=utf-8',
