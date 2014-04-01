@@ -11,7 +11,7 @@ $server = {
 	#rbuf_max 	=> 16 * 1024, 	# max allowed size of read buffer in bytes
 	#wbuf_max 	=> 16 * 1024, 	# max allowed size of write buffer in bytes
 	keepalive 	=> 1,			# if true, enable SO_KEEPALIVE on socket
-	no_delay 	=> 0, 			# if true, write data as you provide it
+	no_delay 	=> 1, 			# if true, write data as you provide it
 	timeout 	=> 5, 			# idle connection timeout in seconds
 };
 $fileserver = {
@@ -23,7 +23,7 @@ $websocket = {
 	#rbuf_max 	=> 16 * 1024, 	# max allowed size of read buffer in bytes
 	#wbuf_max 	=> 16 * 1024, 	# max allowed size of write buffer in bytes
 	keepalive 	=> 1,			# if true, enable SO_KEEPALIVE on socket
-	no_delay 	=> 0, 			# if true, write data as you provide it
+	no_delay 	=> 1, 			# if true, write data as you provide it
 	timeout 	=> 0, 			# idle connection timeout in seconds
 	redis => $cfg::redis
 };

@@ -1,0 +1,44 @@
+<!doctype html>
+<head>
+<title>CodeMirror: Vim bindings demo</title>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="/css/codemirror.css">
+<script src="/js/codemirror.js"></script>
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/js/jquery.json-2.4.min.js"></script>
+<script type="text/javascript" src="/js/jquery.wse.webgl.js"></script>
+
+<style type="text/css">
+      .CodeMirror {border-top: 1px solid #eee; border-bottom: 1px solid #eee;}
+    </style>
+</head>
+<body>
+<article>
+<h2>Colaboritive Editing</h2>
+<form><textarea id="code" name="code">
+#include "syscalls.h"
+/* getchar:  simple buffered version */
+int getchar(void)
+{
+  static char buf[BUFSIZ];
+  static char *bufp = buf;
+  static int n = 0;
+  if (n == 0) {  /* buffer is empty */
+    n = read(0, buf, sizeof buf);
+    bufp = buf;
+  }
+  return (--n >= 0) ? (unsigned char) *bufp++ : EOF;
+}
+</textarea></form>
+    <script>
+      CodeMirror.commands.save = function(){ alert("Saving"); };
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        mode: "text/x-csrc",
+        vimMode: true,
+        matchBrackets: true,
+        showCursorWhenSelecting: true
+      });
+    </script>
+  </article>
+</body>

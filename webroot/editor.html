@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Editor</title>
+  <style type="text/css" media="screen">
+html {
+    height: 100%;
+    width: 100%;
+}
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family: Arial, Helvetica, sans-serif, Tahoma, Verdana, sans-serif;
+    font-size: 10px;
+    background: rgb(14, 98, 165);
+    color: white;
+}
+select,button,input {
+    font-size: 0.8em;
+}
+#messageText {
+	width: 80%;
+}
+#editors {
+	width: 75%;
+	height: 100%;
+}
+#tabs {
+	font-size: 10px;
+	height: 100%;
+}
+#controls {
+	width: 24%;
+	height: 100%;
+}
+#users,#messages {
+	margin: 0 auto;
+	width: 99%;
+	height: 99%;
+}
+#page {
+	width: 100%;
+	margin: 0 auto;
+	height: 100%;
+}
+#editors, #controls {
+	float: left;
+	margin: 0 auto;
+	min-height: 400px;
+	height: 98%;
+}
+#users-container {
+	height: 15%;
+}
+#messages-container {
+	height: 35%;
+}
+div.editor-options {
+	display: inline;
+}
+div.editor-ace { 
+    margin: 0px;
+    width: 100%;
+    height: 95%;
+}
+#new-editor {
+	position: relative;
+	right: 10px;
+}
+ul { 
+}
+ul li { 
+}
+ul li b { 
+	text-decoration: none;
+	padding-right: 0.5em;
+}
+ul li p {
+	display: inline;
+	font-weight: 300; 
+}
+</style>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/cupertino/jquery-ui.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/js/jquery.ui.touch-punch.min.js"></script>
+<script type="text/javascript" src="/js/jquery.json-2.4.min.js"></script>
+<script src="/js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/ace/keybinding-vim.js"></script>
+<script src="/js/ace/keybinding-emacs.js"></script>
+<script type="text/javascript" src="/js/FileSaver.js"></script>
+<script type="text/javascript" src="/js/jquery.wse.editor.js"></script>
+</head>
+<body>
+<div id="dialog"></div>
+<div id="page">
+<div id="editors">
+<div id="tabs">
+  <ul>
+  </ul>
+</div>
+</div>
+<div id="controls">
+<h3 class="ui-helper-reset ui-state-default ui-state-active ui-widget-header ui-corner-top">Options</h3>
+<div class="ui-helper-reset ui-widget-content ui-corner-bottom ui-state-default">
+<label for="username">Username</label>
+<input id="username" type=text></input><br>
+
+<label for="keybinding">Default Key Bindings</label>
+<select id="keybinding">
+<option value="ace">Default</option>
+<option value="vim" selected="selected">Vim</option>
+<option value="emacs">Emacs</option>
+</select><br>
+
+<label for="default-context">Default Context</label>
+<select id="default-context" size="1">
+<option value="abap">ABAP</option><option value="actionscript">ActionScript</option><option value="ada">ADA</option><option value="apache_conf">Apache Conf</option><option value="asciidoc">AsciiDoc</option><option value="assembly_x86">Assembly x86</option><option value="autohotkey">AutoHotKey</option><option value="batchfile">BatchFile</option><option value="c9search">C9Search</option><option value="c_cpp">C/C++</option><option value="cirru">Cirru</option><option value="clojure">Clojure</option><option value="cobol">Cobol</option><option value="coffee">CoffeeScript</option><option value="coldfusion">ColdFusion</option><option value="csharp">C#</option><option value="css">CSS</option><option value="curly">Curly</option><option value="d">D</option><option value="dart">Dart</option><option value="diff">Diff</option><option value="dot">Dot</option><option value="erlang">Erlang</option><option value="ejs">EJS</option><option value="forth">Forth</option><option value="ftl">FreeMarker</option><option value="gherkin">Gherkin</option><option value="glsl">Glsl</option><option value="golang">Go</option><option value="groovy">Groovy</option><option value="haml">HAML</option><option value="handlebars">Handlebars</option><option value="haskell">Haskell</option><option value="haxe">haXe</option><option value="html">HTML</option><option value="html_ruby">HTML (Ruby)</option><option value="ini">INI</option><option value="jack">Jack</option><option value="jade">Jade</option><option value="java">Java</option><option value="javascript">JavaScript</option><option value="json">JSON</option><option value="jsoniq">JSONiq</option><option value="jsp">JSP</option><option value="jsx">JSX</option><option value="julia">Julia</option><option value="latex">LaTeX</option><option value="less">LESS</option><option value="liquid">Liquid</option><option value="lisp">Lisp</option><option value="livescript">LiveScript</option><option value="logiql">LogiQL</option><option value="lsl">LSL</option><option value="lua">Lua</option><option value="luapage">LuaPage</option><option value="lucene">Lucene</option><option value="makefile">Makefile</option><option value="matlab">MATLAB</option><option value="markdown">Markdown</option><option value="mel">MEL</option><option value="mysql">MySQL</option><option value="mushcode">MUSHCode</option><option value="nix">Nix</option><option value="objectivec">Objective-C</option><option value="ocaml">OCaml</option><option value="pascal">Pascal</option><option value="perl" selected="selected">Perl</option><option value="pgsql">pgSQL</option><option value="php">PHP</option><option value="powershell">Powershell</option><option value="prolog">Prolog</option><option value="properties">Properties</option><option value="protobuf">Protobuf</option><option value="python">Python</option><option value="r">R</option><option value="rdoc">RDoc</option><option value="rhtml">RHTML</option><option value="ruby">Ruby</option><option value="rust">Rust</option><option value="sass">SASS</option><option value="scad">SCAD</option><option value="scala">Scala</option><option value="smarty">Smarty</option><option value="scheme">Scheme</option><option value="scss">SCSS</option><option value="sh">SH</option><option value="sjs">SJS</option><option value="space">Space</option><option value="snippets">snippets</option><option value="soy_template">Soy Template</option><option value="sql">SQL</option><option value="stylus">Stylus</option><option value="svg">SVG</option><option value="tcl">Tcl</option><option value="tex">Tex</option><option value="text">Text</option><option value="textile">Textile</option><option value="toml">Toml</option><option value="twig">Twig</option><option value="typescript">Typescript</option><option value="vbscript">VBScript</option><option value="velocity">Velocity</option><option value="verilog">Verilog</option><option value="xml">XML</option><option value="xquery">XQuery</option><option value="yaml">YAML</option>
+</select><br>
+<label for="theme">Editor Theme</label>
+<select id="theme"> <optgroup label=Light> <option value="chrome">Chrome</option> <option value="clouds">Clouds</option> <option value="crimson_editor">Crimson Editor</option> <option value="dawn">Dawn</option> <option value="dreamweaver">Dreamweaver</option> <option value="eclipse">Eclipse</option> <option value="github">GitHub</option> <option value="solarized_light">Solarized Light</option> <option value="textmate">TextMate</option> <option value="tomorrow">Tomorrow</option> <option value="xcode">XCode</option> <option value="kuroir">Kuroir</option> <option value="katzenmilch">KatzenMilch</option> </optgroup> <optgroup label=Dark> <option value="ambiance">Ambiance</option> <option value="chaos">Chaos</option> <option value="clouds_midnight">Clouds Midnight</option> <option value="cobalt">Cobalt</option> <option value="idle_fingers">idle Fingers</option> <option value="kr_theme">krTheme</option> <option value="merbivore">Merbivore</option> <option value="merbivore_soft">Merbivore Soft</option> <option value="mono_industrial">Mono Industrial</option> <option value="monokai">Monokai</option> <option value="pastel_on_dark">Pastel on dark</option> <option value="solarized_dark">Solarized Dark</option> <option value="terminal">Terminal</option> <option value="tomorrow_night">Tomorrow Night</option> <option value="tomorrow_night_blue">Tomorrow Night Blue</option> <option value="tomorrow_night_bright">Tomorrow Night Bright</option> <option value="tomorrow_night_eighties">Tomorrow Night 80s</option> <option value="twilight" selected="selected">Twilight</option> <option value="vibrant_ink">Vibrant Ink</option> </optgroup>
+</select><br>
+
+<button onclick="wse.send({eventName:'createEditor'})">New Editor</button>
+</div>
+
+<h3 class="ui-helper-reset ui-state-default ui-state-active ui-widget-header ui-corner-top">Users</h3>
+<div class="ui-helper-reset ui-widget-content ui-corner-bottom ui-state-default" id="users-container">
+<ul id="users" class="ui-helper-reset ui-helper-clearfix"></ul>
+</div>
+<h3 class="ui-helper-reset ui-state-default ui-state-active ui-widget-header ui-corner-top">Chat</h3>
+<div class="ui-helper-reset ui-widget-content ui-corner-bottom ui-state-default" id="messages-container">
+<ul id="messages" class="ui-helper-reset ui-helper-clearfix"></ul>
+
+<form></form><input type=text id="messageText" placeholder="Enter text to send"></input><button id="sendMessage">Send</button>
+</div>
+</div>
+</div>
+<script>
+	dialog = $("#dialog");
+	tabs = $("#tabs").tabs({ heightStyle: "fill" });
+	dialog.dialog({ autoOpen: false });
+	function loadStorage(id,default_value) {
+		var value = localStorage.getItem(id);
+		if (null == value || $.isEmptyObject(value)) return default_value;
+		return value;
+	}
+	$("#keybinding").on("change", function () { localStorage.setItem("keybinding", this.value);for(var id in editors ) { getEditor(id).setKeybinding({keybinding: this.value}); }}).val(loadStorage("keybinding","vim")).change();
+	$("#theme").on("change", function () { localStorage.setItem("theme", this.value);for(var id in editors ) { getEditor(id).setTheme({theme:this.value}); }}).val(loadStorage("theme","chrome")).change();
+	$("#username").on("change", function () { localStorage.setItem("username", this.value);wse.send({eventName:"setUsername", username:$("#username").val()});}).val(loadStorage("username",""));
+	wse = $.wse({url:'ws://__WS_HOST__/editorws',encoding:'json',room_id:'__ROOM_ID__',username:$("#username").val()});
+	$("#sendMessage").on("click", function() { 
+		var minput = $("#messageText"); 
+		if ( minput.val() != '' ) { 
+			wse.send({eventName:"sendMessage",sendSelf: 1, message:minput.val(),from:$("#username").val()});
+			minput.val('');
+		}
+	}).on("keyup", function(e) { 
+		var minput = $("#messageText"); 
+		if ( e.keyCode==13 && minput.val() != '' ) { 
+			wse.send({eventName:"sendMessage",sendSelf: 1, message:minput.val(),from:$("#username").val()});
+			minput.val('');
+		}
+	});
+</script>
+</body>
+</html>

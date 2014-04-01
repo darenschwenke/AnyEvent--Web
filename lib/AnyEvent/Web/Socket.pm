@@ -9,7 +9,7 @@ use Protocol::WebSocket::Frame;
 use AnyEvent::Web::Util qw(print_unicode);
 use Protocol::WebSocket::Handshake::Server;
 use constant SOCKET_DEBUG => 1;
-use constant SOCKET_FRAME_DEBUG => 0;
+use constant SOCKET_FRAME_DEBUG => 1;
 
 sub new {
 	my ($caller,$handle,$config) = @_;
@@ -47,7 +47,9 @@ sub new {
 				$self->on_close();
 			});
 			$self->{_handle}->on_read(sub {
-				my ($handle) = shift;
+				my ($handle) = @_;
+				select STDERR;
+				$| = 1;
 				print STDERR $self->{_handle}->{id} . ' ' . $self->{_class} . " on_read frame appending: " . print_unicode($handle->{rbuf}) . "\n" if SOCKET_FRAME_DEBUG;
 				$ws_frame->append($handle->{rbuf});
 				$handle->{rbuf} = undef;

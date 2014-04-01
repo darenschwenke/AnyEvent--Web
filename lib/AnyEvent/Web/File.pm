@@ -62,11 +62,13 @@ sub serve {
 	$r->{protocol} = $r->{SERVER_PROTOCOL};
 	$r->{filename} ||= $self->{web_root} . $r->{PATH};
 	my $key = 'PA:' . $r->{PATH} . '|' . 'KA:' . $r->{keep_alive};
-	if ($self->{cache_enable} && ( $cache = $self->{_cache}->{$key}) ) {
+	if ($self->{cache_enable} && ( $cache = $self->{_cache}->{$key}) && $cache->{size} ) {
 		print STDERR "Serving $r->{PATH} from cache via rule $r->{ROUTE}\n" if FILE_DEBUG;
-		$r->{rewrite}->($cache) if $r->{rewrite};
+		$r->{content_string} = $cache->{content_string};
+		$r->{rewrite}->($r) if $r->{rewrite};
+		use bytes;
 		$handle->push_write($cache->{header_string} . 
-			'Content-Length: ' . $cache->{size} . "\n" . 
+			'Content-Length: ' . length $r->{content_string} . "\n" . 
 			'Date: ' . $self->{now_http} . "\n\n" . $cache->{content_string});
 		$handle->on_drain( sub {
 			$cache->{on_done}->($handle) if $cache->{on_done};

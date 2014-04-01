@@ -5,6 +5,7 @@ BEGIN { AnyEvent::common_sense }
 use Data::Dumper;
 
 use FindBin;
+use Clone qw(clone);
 use lib "$FindBin::Bin/../";
 use HTTP::Parser::XS qw(parse_http_request);
 #use URI::Escape qw( uri_unescape );
@@ -84,7 +85,7 @@ sub serve {
 						$r->{PATH} = $r->{PATH_INFO};
 						$r->{PATH} = '/index.html' if $r->{PATH} eq '/';
 						$r->{PATH} =~ s/$PATH_UNESCAPE_REGEX/chr(hex($1))/eg;
-						$r->{PATH} =~ s/$PATH_CLEAN_REGEX//g;
+						#$r->{PATH} =~ s/$PATH_CLEAN_REGEX//g;
 						ROUTE:
 						foreach my $route ( @{ $self->{routes} } ) {
 							$r->{ROUTE} = $route->{name};
@@ -96,8 +97,8 @@ sub serve {
 							}
 							if ( defined ( $route->{match_any} ) ) {
 								foreach my $key ( keys %{$route->{match_any}} ) {
-									if ( defined($r->{$key}) && $r->{$key} ~~ $route->{match_any}->{$key}) {
-					 					$r->{VARS}->{$key} = %+ if %+;
+									if ( defined($r->{$key}) && $r->{$key} ~~ $route->{match_any}->{$key} ) {
+										push(@{$r->{VARS}->{$key}->{$_}},$+{$_}) for keys %+;
 										$route->{handler}->($handle) if $route->{handler};
 										last ROUTE if ! $r->{CONTINUE};
 									}
@@ -107,7 +108,7 @@ sub serve {
 									foreach my $key ( keys %{$route->{match_all}} ) {
 										if ( defined($r->{$key}) ) {
 											if ( $r->{$key} ~~ $route->{match_all}->{$key} ) {
-					 							$r->{VARS}->{$key} = %+ if %+;
+												push(@{$r->{VARS}->{$key}->{$_}},$+{$_}) for keys %+;
 											} else {
 												last MATCH_ALL;
 											} 
